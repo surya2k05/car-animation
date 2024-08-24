@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle on Road</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        .road-container {
+            position: relative;
+            height: 100vh;
+            background: url("road.jpg") no-repeat center center/cover;
+            overflow: hidden; 
+        }
+        .vehicle {
+            position: absolute;
+            bottom: 0; 
+            left: 30%; 
+            width: 100px;
+            transition: transform 0.2s ease-out, opacity 2s ease-out; 
+        }
+        .timer-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .timer {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 10px solid #ff0000; 
+            border-radius: 50%;
+            background: rgba(0,0, 0, 0.5); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            overflow: hidden;
+            transition: border-color 1s linear; 
+        }
+        .timer::after {
+            content: 'sec';
+            position: absolute;
+            bottom: -25px;
+            font-size: 16px;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="road-container">
+        <div class="timer-container">
+            <div class="timer" id="timer">00:10</div>
+        </div>
+        <img src="car2.png" alt="Vehicle" class="vehicle" id="vehicle">
+    </div>
+
+    <script>
+        let vehicle = document.getElementById("vehicle");
+        let timerElement = document.getElementById("timer");
+        let position = 0;
+        let stopPosition = window.innerHeight * 0.4; 
+        let fadeOutStartPosition = stopPosition + 100;
+        let countdownDuration = 10;
+        let countdownInterval;
+        let carSpeed = (stopPosition / countdownDuration); 
+
+        function startTimer() {
+            let endTime = Date.now() + countdownDuration * 1000;
+            countdownInterval = setInterval(() => {
+                let timeLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+                if (timeLeft <= 3) {
+                    timerElement.style.borderColor = '#00ff00';
+                } else if (timeLeft <= 7) {
+                    timerElement.style.borderColor = '#ffff00'; 
+                } else {
+                    timerElement.style.borderColor = '#ff0000'; 
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+        }
+
+        function moveCar() {
+            position += carSpeed / 60;
+
+            let maxScale = 3; 
+            let minScale = 1.5; 
+            let scale = maxScale - ((maxScale - minScale) * (position / stopPosition)); 
+
+            vehicle.style.transform = `translateY(${-position}px) scale(${scale})`;
+
+            if (position < stopPosition) {
+                requestAnimationFrame(moveCar);
+            } else {
+                setTimeout(() => {
+                    clearInterval(countdownInterval); 
+                    moveAndFadeOutCar();
+                }, 2000);
+            }
+        }
+
+        function moveAndFadeOutCar() {
+            let moveDistance = 109; 
+            let finalPosition = position + moveDistance;
+
+            function move() {
+                position += carSpeed / 60; 
+
+                let maxScale = 1.5; 
+                let minScale = 0.9; 
+                let scale = maxScale - ((maxScale - minScale) * ((position - stopPosition) / moveDistance));
+
+                vehicle.style.transform = `translateY(${-position}px) scale(${scale})`;
+
+                if (position < finalPosition) {
+                    requestAnimationFrame(move);
+                } else {
+                    fadeOutCar();
+                }
+            }
+
+            move();
+        }
+
+        function fadeOutCar() {
+            let fadeDuration = 2000; 
+            vehicle.style.transition = `opacity ${fadeDuration / 1000}s ease-out`; 
+            vehicle.style.opacity = 0; 
+
+            setTimeout(() => {
+                vehicle.style.display = 'none';
+            }, fadeDuration);
+        }
+
+        startTimer(); 
+        moveCar();
+    </script>
+</body>
+</html>
